@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulateur Parcoursup — Phase d'admission 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Bricolage+Grotesque:wght@300..800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #f4ede0;
+  --paper-2: #ebe1cb;
+  --paper-3: #e0d4b6;
+  --ink: #14181f;
+  --ink-soft: #353a44;
+  --ink-mute: #6a6a64;
+  --rule: #c8bda5;
+  --rule-soft: #d8ccae;
+  --accent: #c1432f;
+  --accent-dark: #8a2a1a;
+  --gold: #a47b1c;
+  --green: #2d6a4f;
+  --green-bg: #d9e6dc;
+  --amber: #b78628;
+  --amber-bg: #ece0c2;
+  --red: #a8331f;
+  --red-bg: #ecd6cf;
+  --gray: #8b8579;
+  --gray-bg: #ddd5c2;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+html, body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 1.5;
+  letter-spacing: -0.005em;
+  min-height: 100vh;
+}
+
+body {
+  background-image:
+    repeating-linear-gradient(0deg, transparent 0, transparent 31px, rgba(20,24,31,0.022) 31px, rgba(20,24,31,0.022) 32px),
+    radial-gradient(1200px 600px at 80% -10%, rgba(193,67,47,0.05), transparent 70%);
+  min-height: 100vh;
+}
+
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; font-size: inherit; }
+input, select { font-family: inherit; font-size: inherit; color: inherit; }
+
+#app { max-width: 1200px; margin: 0 auto; padding: 24px 32px 80px; }
+
+/* === HEADER (DOSSIER) === */
+.dossier-header {
+  border-top: 2px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  padding: 16px 0 14px;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.dossier-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.dossier-meta strong { color: var(--ink); font-weight: 700; }
+.dossier-tagline {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+/* === SETUP SCREEN === */
+.hero { margin-bottom: 64px; max-width: 900px; }
+.hero h1 {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(46px, 7.5vw, 92px);
+  font-weight: 300;
+  font-variation-settings: 'opsz' 144;
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+  margin-bottom: 18px;
+}
+.hero h1 em { font-style: italic; font-weight: 500; color: var(--accent); }
+.hero .lede {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: 19px;
+  color: var(--ink-soft);
+  max-width: 580px;
+  line-height: 1.45;
+}
+
+.section-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-bottom: 8px;
+}
+.section-title {
+  font-family: 'Fraunces', serif;
+  font-size: 28px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 12px;
+}
+
+.config-block { margin-bottom: 48px; }
+
+.mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.mode-card {
+  border: 1.5px solid var(--rule);
+  background: rgba(255,255,255,0.4);
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+}
+.mode-card:hover { border-color: var(--ink-soft); background: rgba(255,255,255,0.7); }
+.mode-card.active { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+.mode-card.active .mode-desc { color: var(--paper-2); }
+.mode-card .mode-mark {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  display: block;
+  margin-bottom: 12px;
+  opacity: 0.7;
+}
+.mode-card h3 { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 400; margin-bottom: 8px; }
+.mode-card .mode-desc { font-size: 14px; color: var(--ink-soft); line-height: 1.4; }
+
+/* Severity slider */
+.severity-block { margin-top: 24px; padding: 24px; border: 1px solid var(--rule); background: rgba(255,255,255,0.5); }
+.severity-label {
+  display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px;
+}
+.severity-label .lbl-text { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-mute); }
+.severity-label .lbl-value { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 500; font-style: italic; }
+.severity-slider {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 4px; background: var(--rule); outline: none; border-radius: 0;
+  margin: 12px 0;
+}
+.severity-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 18px; height: 18px; background: var(--accent); cursor: pointer; border-radius: 50%;
+  border: 3px solid var(--paper);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.severity-slider::-moz-range-thumb { width: 18px; height: 18px; background: var(--accent); cursor: pointer; border-radius: 50%; border: 3px solid var(--paper); }
+.severity-ticks { display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; color: var(--ink-mute); text-transform: uppercase; }
+.severity-desc { font-family: 'Fraunces', serif; font-style: italic; font-size: 14px; color: var(--ink-soft); margin-top: 14px; min-height: 20px; }
+
+/* Auto-responder */
+.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border: 1px solid var(--rule); background: rgba(255,255,255,0.5); margin-bottom: 12px; }
+.toggle-label { display: flex; flex-direction: column; gap: 4px; }
+.toggle-label strong { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 500; }
+.toggle-label span { font-size: 13px; color: var(--ink-soft); font-style: italic; font-family: 'Fraunces', serif; }
+.toggle {
+  width: 48px; height: 26px; background: var(--rule); border-radius: 13px; position: relative; cursor: pointer; transition: background 0.2s;
+}
+.toggle.on { background: var(--green); }
+.toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: var(--paper); border-radius: 50%; transition: left 0.2s; }
+.toggle.on::after { left: 25px; }
+
+.btn-config-rank { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; padding: 8px 14px; border: 1px solid var(--ink); background: var(--paper); cursor: pointer; transition: all 0.15s; }
+.btn-config-rank:hover { background: var(--ink); color: var(--paper); }
+
+/* Primary button */
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 16px;
+  padding: 18px 36px;
+  background: var(--ink); color: var(--paper);
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600;
+  cursor: pointer; transition: all 0.18s;
+  margin-top: 32px;
+}
+.btn-primary:hover { background: var(--accent); }
+.btn-primary .arr { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 300; }
+
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 18px;
+  border: 1px solid var(--ink);
+  background: transparent; color: var(--ink);
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-secondary:hover { background: var(--ink); color: var(--paper); }
+
+.btn-ghost {
+  padding: 8px 12px;
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase;
+  border: 1px solid var(--rule); color: var(--ink-soft); background: transparent;
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-ghost:hover { border-color: var(--ink); color: var(--ink); }
+
+.btn-accept { background: var(--green); color: white; padding: 8px 14px; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; cursor: pointer; transition: all 0.15s; border: 1px solid var(--green); }
+.btn-accept:hover { background: #1f4a37; }
+.btn-refuse { background: transparent; color: var(--red); padding: 8px 14px; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; cursor: pointer; transition: all 0.15s; border: 1px solid var(--red); }
+.btn-refuse:hover { background: var(--red); color: white; }
+
+/* === SIMULATION SCREEN === */
+.sim-topbar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 24px;
+  align-items: end;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--ink);
+  margin-bottom: 24px;
+}
+.sim-date-block .date-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 8px; font-weight: 700;
+}
+.sim-date-block .date-main {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.025em;
+}
+.sim-date-block .date-main em { font-style: italic; }
+.sim-date-block .date-sub { font-family: 'Fraunces', serif; font-style: italic; font-size: 16px; color: var(--ink-soft); margin-top: 8px; }
+
+.sim-actions { display: flex; gap: 10px; align-items: center; }
+
+/* Stats strip */
+.stats-strip {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 0;
+  border: 1px solid var(--ink); margin-bottom: 32px;
+  background: rgba(255,255,255,0.3);
+}
+.stat {
+  padding: 16px 18px;
+  border-right: 1px solid var(--rule);
+}
+.stat:last-child { border-right: none; }
+.stat .stat-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 6px; }
+.stat .stat-value { font-family: 'Fraunces', serif; font-size: 36px; font-weight: 400; line-height: 1; letter-spacing: -0.02em; }
+.stat.ok .stat-value { color: var(--green); }
+.stat.attente .stat-value { color: var(--amber); }
+.stat.refus .stat-value { color: var(--red); }
+.stat.acc .stat-value { color: var(--ink); font-style: italic; }
+
+/* Action panel (propositions à traiter) */
+.actions-panel {
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  margin-bottom: 32px;
+}
+.actions-panel-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(244,237,224,0.2);
+  display: flex; align-items: center; gap: 12px;
+}
+.actions-panel-header .spark { color: var(--accent); font-size: 14px; }
+.actions-panel-header .ttl { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; }
+.actions-panel-header .count { margin-left: auto; font-family: 'Fraunces', serif; font-style: italic; font-size: 14px; }
+.action-item {
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(244,237,224,0.12);
+  display: grid; grid-template-columns: 1fr auto auto; gap: 18px; align-items: center;
+}
+.action-item:last-child { border-bottom: none; }
+.action-item .name { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 400; }
+.action-item .name em { font-style: italic; opacity: 0.85; font-weight: 300; }
+.action-item .meta { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; color: var(--paper-2); margin-top: 4px; }
+.action-item .deadline { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-align: right; }
+.action-item .deadline strong { display: block; font-size: 16px; color: var(--accent); font-weight: 700; }
+.action-item .deadline.urgent strong { color: #ff6b4a; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+.action-buttons { display: flex; gap: 8px; }
+
+.empty-actions { padding: 28px 18px; text-align: center; font-family: 'Fraunces', serif; font-style: italic; color: var(--paper-2); font-size: 15px; }
+
+/* Filters */
+.filters-bar {
+  display: flex; gap: 0; margin-bottom: 16px;
+  border: 1px solid var(--rule); background: rgba(255,255,255,0.3);
+  flex-wrap: wrap;
+}
+.filter-tab {
+  padding: 10px 18px;
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink-soft); cursor: pointer; transition: all 0.15s;
+  border-right: 1px solid var(--rule);
+}
+.filter-tab:last-child { border-right: none; }
+.filter-tab:hover { background: rgba(255,255,255,0.5); }
+.filter-tab.active { background: var(--ink); color: var(--paper); }
+.filter-tab .ct { opacity: 0.6; margin-left: 6px; font-weight: 400; }
+.filter-tab.active .ct { opacity: 0.8; }
+
+/* Vœux list */
+.voeux-list {
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+}
+.voeu-row {
+  display: grid;
+  grid-template-columns: 38px 1fr 110px 130px 110px 140px;
+  gap: 16px;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--rule-soft);
+  align-items: center;
+  transition: background 0.15s;
+}
+.voeu-row:last-child { border-bottom: none; }
+.voeu-row:hover { background: rgba(255,255,255,0.4); }
+.voeu-row.is-accepted { background: rgba(45,106,79,0.07); }
+.voeu-row.is-renonce { opacity: 0.4; }
+.voeu-row.is-refus { opacity: 0.55; }
+.voeu-row.is-expired { opacity: 0.4; }
+
+.voeu-num { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-mute); text-align: right; font-weight: 600; }
+.voeu-name { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 400; line-height: 1.2; }
+.voeu-name em { font-style: italic; color: var(--ink-soft); font-weight: 300; }
+.voeu-name .voeu-ville { display: block; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--ink-mute); margin-top: 3px; letter-spacing: 0.05em; font-style: normal; }
+.voeu-formation { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.06em; color: var(--ink-soft); }
+.voeu-internat { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: var(--ink-mute); }
+.voeu-internat .int-tag { display: inline-block; padding: 2px 6px; background: var(--paper-3); border-radius: 2px; }
+
+.status-pill {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700;
+  padding: 4px 8px; display: inline-block; min-width: 80px; text-align: center; white-space: nowrap;
+}
+.status-none { background: var(--gray-bg); color: var(--ink-mute); }
+.status-proposition { background: var(--green-bg); color: var(--green); }
+.status-attente { background: var(--amber-bg); color: var(--amber); }
+.status-refus { background: var(--red-bg); color: var(--red); }
+.status-accepte { background: var(--green); color: white; }
+.status-renonce { background: var(--gray-bg); color: var(--ink-mute); }
+.status-expire { background: var(--gray-bg); color: var(--red); }
+.status-pill .rank-info { font-weight: 400; opacity: 0.85; }
+
+.voeu-actions { display: flex; gap: 4px; justify-content: flex-end; align-items: center; }
+.btn-mini { padding: 5px 9px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid var(--rule); background: transparent; color: var(--ink-soft); cursor: pointer; transition: all 0.15s; }
+.btn-mini:hover { border-color: var(--ink); color: var(--ink); }
+.btn-mini.accept { border-color: var(--green); color: var(--green); }
+.btn-mini.accept:hover { background: var(--green); color: white; }
+.btn-mini.refuse { border-color: var(--red); color: var(--red); }
+.btn-mini.refuse:hover { background: var(--red); color: white; }
+
+/* Day controls */
+.day-controls {
+  margin-top: 32px;
+  padding: 24px;
+  border: 1.5px solid var(--ink);
+  background: rgba(255,255,255,0.4);
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+}
+.day-info { font-family: 'Fraunces', serif; font-style: italic; font-size: 16px; color: var(--ink-soft); }
+.day-info strong { font-style: normal; font-weight: 500; color: var(--ink); }
+
+/* Modal */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(20,24,31,0.55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100; padding: 20px;
+  animation: fadeIn 0.18s ease-out;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  max-width: 580px; width: 100%;
+  max-height: 85vh; overflow-y: auto;
+  position: relative;
+}
+.modal-large { max-width: 720px; }
+.modal-header { padding: 20px 28px 14px; border-bottom: 1px solid var(--ink); }
+.modal-header .modal-tag { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; font-weight: 700; }
+.modal-header h2 { font-family: 'Fraunces', serif; font-size: 30px; font-weight: 400; line-height: 1.1; letter-spacing: -0.02em; }
+.modal-body { padding: 24px 28px; }
+.modal-body p { margin-bottom: 14px; line-height: 1.55; }
+.modal-body p.serif-italic { font-family: 'Fraunces', serif; font-style: italic; font-size: 17px; color: var(--ink-soft); line-height: 1.4; }
+.modal-footer { padding: 16px 28px; border-top: 1px solid var(--rule); display: flex; gap: 10px; justify-content: flex-end; }
+.modal-close { position: absolute; top: 16px; right: 18px; font-family: 'Fraunces', serif; font-size: 28px; font-weight: 300; line-height: 1; cursor: pointer; color: var(--ink-mute); }
+.modal-close:hover { color: var(--ink); }
+
+/* Ranking list in modal */
+.ranking-list { list-style: none; max-height: 50vh; overflow-y: auto; border: 1px solid var(--rule); }
+.ranking-item {
+  display: grid; grid-template-columns: 36px 1fr auto; gap: 12px; align-items: center;
+  padding: 10px 14px; border-bottom: 1px solid var(--rule-soft);
+}
+.ranking-item:last-child { border-bottom: none; }
+.ranking-item .rk-num { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--ink-mute); font-size: 12px; }
+.ranking-item .rk-name { font-family: 'Fraunces', serif; font-size: 14px; }
+.ranking-item .rk-name span { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-mute); margin-left: 6px; letter-spacing: 0.05em; }
+.rk-arrows { display: flex; gap: 2px; }
+.rk-arrows button {
+  width: 24px; height: 24px;
+  font-family: 'Fraunces', serif; font-size: 14px;
+  border: 1px solid var(--rule); background: var(--paper); cursor: pointer; transition: all 0.1s;
+}
+.rk-arrows button:hover { background: var(--ink); color: var(--paper); }
+.rk-arrows button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* Manual mode response selector */
+.manual-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 16px 0; }
+.manual-option {
+  padding: 14px;
+  border: 1.5px solid var(--rule);
+  cursor: pointer; transition: all 0.15s;
+  background: rgba(255,255,255,0.4);
+}
+.manual-option:hover { border-color: var(--ink); }
+.manual-option.selected { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+.manual-option .opt-tag { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px; }
+.manual-option .opt-name { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 500; }
+.rank-input-row { display: flex; align-items: center; gap: 12px; margin: 12px 0; }
+.rank-input-row label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-mute); }
+.rank-input-row input { padding: 6px 10px; border: 1px solid var(--rule); background: var(--paper); width: 80px; font-family: 'JetBrains Mono', monospace; }
+
+/* Toast log */
+.event-log {
+  margin-top: 32px; padding-top: 20px;
+  border-top: 1px dashed var(--rule);
+}
+.event-log h4 { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 12px; }
+.event-item {
+  font-family: 'Fraunces', serif; font-size: 14px; line-height: 1.4;
+  padding: 6px 0; border-bottom: 1px solid var(--rule-soft);
+  color: var(--ink-soft);
+}
+.event-item:last-child { border-bottom: none; }
+.event-item .ev-day { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: var(--accent); margin-right: 12px; font-weight: 700; }
+.event-item.major { color: var(--ink); }
+
+/* End screen */
+.end-screen { text-align: left; padding: 24px 0; }
+.end-result {
+  border: 2px solid var(--ink);
+  padding: 36px;
+  margin-bottom: 32px;
+  background: rgba(255,255,255,0.4);
+}
+.end-result.success { background: var(--green-bg); border-color: var(--green); }
+.end-result.fail { background: var(--red-bg); border-color: var(--red); }
+.end-result .result-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 12px; font-weight: 700; }
+.end-result h2 { font-family: 'Fraunces', serif; font-size: clamp(34px, 5vw, 56px); font-weight: 400; letter-spacing: -0.02em; line-height: 1.05; margin-bottom: 12px; }
+.end-result h2 em { font-style: italic; }
+.end-result .result-desc { font-family: 'Fraunces', serif; font-style: italic; font-size: 18px; color: var(--ink-soft); }
+
+@media (max-width: 760px) {
+  #app { padding: 16px 18px 60px; }
+  .voeu-row { grid-template-columns: 26px 1fr; gap: 10px; padding: 10px 4px; }
+  .voeu-formation, .voeu-internat, .voeu-status, .voeu-actions { grid-column: 2; padding-left: 0; }
+  .voeu-actions { justify-content: flex-start; flex-wrap: wrap; }
+  .stats-strip { grid-template-columns: repeat(2, 1fr); }
+  .stat { border-bottom: 1px solid var(--rule); }
+  .mode-grid { grid-template-columns: 1fr; }
+  .action-item { grid-template-columns: 1fr; gap: 8px; }
+  .action-item .deadline { text-align: left; }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+'use strict';
+
+/* ============================================================
+   VŒUX DATA
+============================================================ */
+
+// CPGE: each lycée+formation combo, with internat split where applicable
+const CPGE_RAW = [
+  { name: "Lycée Jean-Baptiste Say",        ville: "Paris 16e",         formation: "PTSI", internat: true  },
+  { name: "Lycée Aux Lazaristes",           ville: "Lyon 5e",           formation: "PCSI", internat: true  },
+  { name: "Lycée Aux Lazaristes",           ville: "Lyon 5e",           formation: "PTSI", internat: true  },
+  { name: "Lycée Blaise Pascal",            ville: "Rouen",             formation: "PTSI", internat: true  },
+  { name: "Lycée Chaptal",                  ville: "Paris 8e",          formation: "PCSI", internat: true  },
+  { name: "Lycée Chaptal",                  ville: "Paris 8e",          formation: "PTSI", internat: true  },
+  { name: "Lycée du Parc",                  ville: "Lyon 6e",           formation: "PCSI", internat: true  },
+  { name: "Lycée Hoche",                    ville: "Versailles",        formation: "PCSI", internat: true  },
+  { name: "Lycée Jules Ferry",              ville: "Versailles",        formation: "PTSI", internat: false },
+  { name: "Lycée La Martinière Monplaisir", ville: "Lyon 8e",           formation: "PCSI", internat: true  },
+  { name: "Lycée La Salle Passy Buzenval",  ville: "Rueil-Malmaison",   formation: "PTSI", internat: true  },
+  { name: "Lycée Louis Pasteur",            ville: "Neuilly-sur-Seine", formation: "PCSI", internat: false },
+  { name: "Lycée Newton-Enrea",             ville: "Clichy",            formation: "PTSI", internat: true  },
+  { name: "Lycée Polyvalent Chevrollier",   ville: "Angers",            formation: "PTSI", internat: true  },
+  { name: "Lycée polyvalent de Cachan",     ville: "Cachan",            formation: "PTSI", internat: true  },
+  { name: "Lycée Sainte Geneviève",         ville: "Versailles",        formation: "PTSI", internat: false },
+  { name: "Lycée Sainte Marie",             ville: "Antony",            formation: "PCSI", internat: true  },
+  { name: "Lycée Stanislas",                ville: "Paris 6e",          formation: "PCSI", internat: true  },
+];
+
+const AVENIR_SOUS_VOEUX = [
+  "ESILV — Paris-La Défense",
+  "EPF — Sceaux",
+  "EPF — Troyes",
+  "EPF — Montpellier",
+  "ESTACA — Saint-Quentin-en-Yvelines",
+  "ESTACA — Laval",
+  "ESTACA — Bordeaux",
+  "ECE — Paris",
+  "ECE — Lyon",
+  "EIGSI — La Rochelle",
+  "BUILDERS — Caen",
+];
+
+const ECAM_SOUS_VOEUX = [
+  "ECAM Lyon",
+  "ECAM Strasbourg-Europe",
+  "ECAM Rennes",
+];
+
+const UT_SOUS_VOEUX = [
+  "UTC — Compiègne",
+  "UTBM — Belfort-Montbéliard",
+  "UTT — Troyes",
+];
+
+const ICAM_SOUS_VOEUX = [
+  "ICAM Lille",
+  "ICAM Nantes",
+  "ICAM Toulouse",
+  "ICAM Paris-Sénart",
+];
+
+const INSA_SOUS_VOEUX = [
+  "INSA Lyon",
+  "INSA Toulouse",
+  "INSA Rennes",
+  "INSA Rouen",
+];
+
+function buildVoeux() {
+  let id = 0;
+  const out = [];
+
+  // CPGE entries — with/without internat splits
+  CPGE_RAW.forEach(c => {
+    if (c.internat) {
+      out.push({ id: `v${++id}`, name: c.name, ville: c.ville, formation: `CPGE ${c.formation}`, internat: 'avec', type: 'cpge', selectif: true });
+      out.push({ id: `v${++id}`, name: c.name, ville: c.ville, formation: `CPGE ${c.formation}`, internat: 'sans', type: 'cpge', selectif: true });
+    } else {
+      out.push({ id: `v${++id}`, name: c.name, ville: c.ville, formation: `CPGE ${c.formation}`, internat: 'na', type: 'cpge', selectif: true });
+    }
+  });
+
+  // Université Rouen — Licence (non-sélective)
+  out.push({ id: `v${++id}`, name: "Université de Rouen Normandie", ville: "Saint-Étienne-du-Rouvray", formation: "Licence Portail Physique", internat: 'na', type: 'licence', selectif: false });
+
+  // Concours groupes — sous-vœux indépendants
+  AVENIR_SOUS_VOEUX.forEach(s => out.push({ id: `v${++id}`, name: s, ville: '', formation: "Concours Avenir", internat: 'na', type: 'ingenieur', groupe: 'avenir', selectif: true }));
+  ECAM_SOUS_VOEUX.forEach(s => out.push({ id: `v${++id}`, name: s, ville: '', formation: "Groupe ECAM LaSalle", internat: 'na', type: 'ingenieur', groupe: 'ecam', selectif: true }));
+  UT_SOUS_VOEUX.forEach(s => out.push({ id: `v${++id}`, name: s, ville: '', formation: "Groupe UT", internat: 'na', type: 'ingenieur', groupe: 'ut', selectif: true }));
+  ICAM_SOUS_VOEUX.forEach(s => out.push({ id: `v${++id}`, name: s, ville: '', formation: "Groupe ICAM", internat: 'na', type: 'ingenieur', groupe: 'icam', selectif: true }));
+  INSA_SOUS_VOEUX.forEach(s => out.push({ id: `v${++id}`, name: s, ville: '', formation: "Groupe INSA", internat: 'na', type: 'ingenieur', groupe: 'insa', selectif: true }));
+
+  // ICES — Licence
+  out.push({ id: `v${++id}`, name: "ICES — Institut Catholique de Vendée", ville: "La Roche-sur-Yon", formation: "Licence Physique fondamentale", internat: 'na', type: 'licence', selectif: false });
+
+  return out;
+}
+
+const ALL_VOEUX = buildVoeux();
+
+/* ============================================================
+   STATE
+============================================================ */
+
+const SEVERITY_LABELS = ['Doux', 'Favorable', 'Réaliste', 'Sévère', 'Cauchemar'];
+const SEVERITY_DESC = [
+  "Tu es chouchouté·e. Beaucoup d'admissions directes, listes courtes, montée rapide.",
+  "Plutôt favorable. Quelques refus, des listes d'attente raisonnables.",
+  "Distribution centrée sur la réalité moyenne d'un dossier solide.",
+  "Concours difficiles, peu d'admissions directes, listes longues à monter.",
+  "Année noire. La plupart des vœux refusés ou très mal classés. Phase complémentaire en vue."
+];
+
+// distributions [oui, attente, refus]
+const SEVERITY_DIST = [
+  [0.50, 0.36, 0.14],
+  [0.32, 0.46, 0.22],
+  [0.16, 0.50, 0.34],
+  [0.07, 0.45, 0.48],
+  [0.02, 0.30, 0.68],
+];
+
+// Daily promotion chance for waiting list (waiting → proposition)
+const PROMO_CHANCE = [0.16, 0.11, 0.07, 0.04, 0.015];
+
+const POINT_ETAPE_DAY = 21;        // jour J+21 (≈ 23 juin)
+const SHORT_DELAY_DAY = 35;        // à partir de J+35, délai = 1 jour
+const PHASE_END_DAY = 42;          // fin phase principale ≈ 14 juillet
+
+let state = null;
+
+function freshState() {
+  return {
+    screen: 'setup',
+    mode: 'aleatoire',         // 'aleatoire' | 'manuel'
+    severity: 2,
+    autoresponderEnabled: false,
+    autoresponderRanking: defaultRanking(),
+    currentDay: 0,
+    voeux: ALL_VOEUX.map(v => ({
+      ...v,
+      status: 'none',          // none | proposition | attente | refus | accepte | renonce | expire
+      rank: null,
+      total: null,
+      proposedDay: null,
+      deadlineDay: null,
+    })),
+    log: [],
+    pointEtapeDone: false,
+    finished: false,
+    activeModal: null,         // { type, payload }
+    filterStatus: 'all',
+    filterType: 'all',
+  };
+}
+
+// Default ranking heuristic
+function defaultRanking() {
+  // Order: prestigious CPGE first (Stan, Ginette, Hoche, Parc, Lazaristes...), then INSA/UT, then ICAM/ECAM, then Avenir, then licences
+  // Within CPGE: prefer "sans internat" before "avec internat"
+  const prestigeOrder = [
+    "Lycée Stanislas", "Lycée Sainte Geneviève", "Lycée Hoche", "Lycée du Parc", "Lycée Aux Lazaristes",
+    "Lycée Chaptal", "Lycée Louis Pasteur", "Lycée polyvalent de Cachan", "Lycée Sainte Marie",
+    "Lycée Jules Ferry", "Lycée La Martinière Monplaisir", "Lycée Blaise Pascal",
+    "Lycée Jean-Baptiste Say", "Lycée La Salle Passy Buzenval", "Lycée Newton-Enrea",
+    "Lycée Polyvalent Chevrollier"
+  ];
+  const groupeOrder = ['insa', 'ut', 'icam', 'ecam', 'avenir'];
+  const list = ALL_VOEUX.slice();
+  list.sort((a, b) => {
+    // CPGE first
+    if (a.type === 'cpge' && b.type !== 'cpge') return -1;
+    if (a.type !== 'cpge' && b.type === 'cpge') return 1;
+    if (a.type === 'cpge' && b.type === 'cpge') {
+      const pa = prestigeOrder.indexOf(a.name);
+      const pb = prestigeOrder.indexOf(b.name);
+      const da = pa === -1 ? 999 : pa;
+      const db = pb === -1 ? 999 : pb;
+      if (da !== db) return da - db;
+      // PCSI before PTSI within same school
+      if (a.formation !== b.formation) return a.formation < b.formation ? -1 : 1;
+      // sans internat before avec internat
+      if (a.internat !== b.internat) {
+        if (a.internat === 'sans') return -1;
+        if (b.internat === 'sans') return 1;
+        if (a.internat === 'na') return -1;
+        if (b.internat === 'na') return 1;
+      }
+      return 0;
+    }
+    // Then écoles d'ingé
+    if (a.type === 'ingenieur' && b.type !== 'ingenieur') return -1;
+    if (a.type !== 'ingenieur' && b.type === 'ingenieur') return 1;
+    if (a.type === 'ingenieur' && b.type === 'ingenieur') {
+      const ga = groupeOrder.indexOf(a.groupe);
+      const gb = groupeOrder.indexOf(b.groupe);
+      if (ga !== gb) return ga - gb;
+      return a.name < b.name ? -1 : 1;
+    }
+    // Licences last
+    return 0;
+  });
+  return list.map(v => v.id);
+}
+
+/* ============================================================
+   DATE & DELAY HELPERS
+============================================================ */
+
+const MONTHS_FR = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const DAYS_FR = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+
+function dateForDay(day) {
+  const d = new Date(2026, 5, 2);    // 2 juin 2026
+  d.setDate(d.getDate() + day);
+  return d;
+}
+function formatDate(d) {
+  return `${DAYS_FR[d.getDay()]} ${d.getDate()} ${MONTHS_FR[d.getMonth()]} ${d.getFullYear()}`;
+}
+function formatDateShort(d) {
+  return `${d.getDate()} ${MONTHS_FR[d.getMonth()].slice(0,4)}.`;
+}
+function getDelay(day) {
+  if (day <= 1) return 3;
+  if (day < SHORT_DELAY_DAY) return 2;
+  return 1;
+}
+
+/* ============================================================
+   GAME LOGIC
+============================================================ */
+
+function rand() { return Math.random(); }
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// Generate initial response for a vœu (random mode, day 0)
+function rollInitial(v, severity) {
+  if (!v.selectif) {
+    // Licence non-sélective: toujours proposition
+    return { status: 'proposition' };
+  }
+  const dist = SEVERITY_DIST[severity];
+  const r = rand();
+  let status;
+  if (r < dist[0]) status = 'proposition';
+  else if (r < dist[0] + dist[1]) status = 'attente';
+  else status = 'refus';
+
+  if (status === 'attente') {
+    // generate rank and total based on formation prestige + severity
+    const baseTotal = v.type === 'cpge' ? 800 : v.type === 'ingenieur' ? 2500 : 500;
+    const total = baseTotal + Math.floor(rand() * baseTotal * 0.5);
+    // initial rank: severity worsens it
+    const factor = 0.15 + severity * 0.18 + rand() * 0.4;
+    const rank = Math.max(1, Math.floor(total * factor));
+    return { status, rank, total };
+  }
+  return { status };
+}
+
+// Initialize first day responses (for random mode)
+function initializeDay0() {
+  // In real Parcoursup: not all answers come at once. Some come J0, some later.
+  // We'll simulate: ~60% of selective vœux get answered on J0, the rest J1-J5
+  state.voeux.forEach(v => {
+    if (!v.selectif) {
+      // Licence: proposition right away
+      const result = rollInitial(v, state.severity);
+      v.status = result.status;
+      v.proposedDay = state.currentDay;
+      v.deadlineDay = state.currentDay + getDelay(state.currentDay);
+      logEvent(0, `Proposition reçue de ${v.name}.`, true);
+    } else {
+      // Selective: chance of getting answer today
+      if (rand() < 0.55) {
+        const result = rollInitial(v, state.severity);
+        applyRollResult(v, result);
+      } else {
+        // Will get answer on a later day (tag with delayed initial)
+        v._pendingFirstResponse = 1 + Math.floor(rand() * 4); // J+1 to J+4
+      }
+    }
+  });
+}
+
+function applyRollResult(v, result) {
+  v.status = result.status;
+  if (result.status === 'proposition') {
+    v.proposedDay = state.currentDay;
+    v.deadlineDay = state.currentDay + getDelay(state.currentDay);
+    logEvent(state.currentDay, `Proposition reçue de ${voeuLabel(v)}.`, true);
+  } else if (result.status === 'attente') {
+    v.rank = result.rank;
+    v.total = result.total;
+    logEvent(state.currentDay, `Liste d'attente : ${voeuLabel(v)} — rang ${v.rank}/${v.total}.`);
+  } else if (result.status === 'refus') {
+    logEvent(state.currentDay, `Refus de ${voeuLabel(v)}.`);
+  }
+}
+
+function voeuLabel(v) {
+  let s = v.name + ' · ' + v.formation;
+  if (v.internat === 'avec') s += ' (avec internat)';
+  if (v.internat === 'sans') s += ' (sans internat)';
+  return s;
+}
+
+function logEvent(day, text, major=false) {
+  state.log.unshift({ day, text, major });
+  if (state.log.length > 80) state.log.pop();
+}
+
+// Advance to next day
+function advanceDay() {
+  if (state.finished) return;
+  state.currentDay++;
+  const day = state.currentDay;
+
+  // 1. Expire propositions whose deadline has passed
+  state.voeux.forEach(v => {
+    if (v.status === 'proposition' && day > v.deadlineDay) {
+      v.status = 'expire';
+      logEvent(day, `Délai expiré : proposition de ${voeuLabel(v)} perdue.`, true);
+    }
+  });
+
+  // Random mode: generate new events
+  if (state.mode === 'aleatoire') {
+    // 2. First responses for vœux delayed from day 0
+    state.voeux.forEach(v => {
+      if (v._pendingFirstResponse !== undefined && v._pendingFirstResponse <= day) {
+        delete v._pendingFirstResponse;
+        const result = rollInitial(v, state.severity);
+        applyRollResult(v, result);
+      }
+    });
+
+    // 3. Waiting list movement: promote some to proposition, improve ranks
+    state.voeux.forEach(v => {
+      if (v.status !== 'attente') return;
+      // Chance to be promoted
+      if (rand() < PROMO_CHANCE[state.severity]) {
+        v.status = 'proposition';
+        v.proposedDay = day;
+        v.deadlineDay = day + getDelay(day);
+        v.rank = null; v.total = null;
+        logEvent(day, `Bonne nouvelle : ${voeuLabel(v)} passe en proposition !`, true);
+      } else {
+        // Improve rank
+        const improvement = Math.max(1, Math.floor(rand() * 12) + (state.severity < 2 ? 4 : 1));
+        v.rank = Math.max(1, v.rank - improvement);
+      }
+    });
+  }
+
+  // 4. Auto-responder: if enabled, automatically pick best available proposition
+  if (state.autoresponderEnabled) {
+    runAutoresponder();
+  }
+
+  // 5. Point d'étape day
+  if (day === POINT_ETAPE_DAY && !state.pointEtapeDone) {
+    openModal({ type: 'point_etape' });
+  }
+
+  // 6. End of phase
+  if (day >= PHASE_END_DAY) {
+    endPhase();
+  }
+
+  // 7. Check if game is effectively over
+  checkAutoEnd();
+}
+
+function runAutoresponder() {
+  // Auto-responder: among current propositions, find the highest-ranked one in user's preferences
+  const ranking = state.autoresponderRanking;
+  const propositions = state.voeux.filter(v => v.status === 'proposition');
+  if (propositions.length === 0) return;
+
+  const currentlyAccepted = state.voeux.find(v => v.status === 'accepte');
+  const currentRank = currentlyAccepted ? ranking.indexOf(currentlyAccepted.id) : Infinity;
+
+  let bestProp = null;
+  let bestRank = currentRank;
+  propositions.forEach(p => {
+    const r = ranking.indexOf(p.id);
+    if (r !== -1 && r < bestRank) {
+      bestRank = r;
+      bestProp = p;
+    }
+  });
+
+  if (bestProp) {
+    // Auto-accept best proposition
+    acceptProposition(bestProp.id, true);
+  }
+
+  // Refuse propositions ranked LOWER than the currently accepted one
+  const newAccepted = state.voeux.find(v => v.status === 'accepte');
+  if (newAccepted) {
+    const accRank = ranking.indexOf(newAccepted.id);
+    state.voeux.forEach(v => {
+      if (v.status === 'proposition' && v.id !== newAccepted.id) {
+        const r = ranking.indexOf(v.id);
+        if (r > accRank) {
+          v.status = 'renonce';
+          logEvent(state.currentDay, `Répondeur : renoncement automatique à ${voeuLabel(v)}.`);
+        }
+      }
+      // Also refuse waiting-list vœux ranked lower than the accepted one
+      if (v.status === 'attente') {
+        const r = ranking.indexOf(v.id);
+        if (r > accRank) {
+          v.status = 'renonce';
+          logEvent(state.currentDay, `Répondeur : renoncement automatique à ${voeuLabel(v)} (liste d'attente).`);
+        }
+      }
+    });
+  }
+}
+
+function acceptProposition(voeuId, fromAuto=false) {
+  const v = state.voeux.find(x => x.id === voeuId);
+  if (!v || v.status !== 'proposition') return;
+
+  // Release any previously accepted proposition
+  state.voeux.forEach(x => {
+    if (x.id !== voeuId && x.status === 'accepte') {
+      x.status = 'renonce';
+      logEvent(state.currentDay, `${voeuLabel(x)} : renoncement (remplacé par autre acceptation).`);
+    }
+  });
+
+  v.status = 'accepte';
+  v.deadlineDay = null;
+  logEvent(state.currentDay, `✓ ACCEPTATION de ${voeuLabel(v)}${fromAuto ? ' (répondeur)' : ''}.`, true);
+}
+
+function refuseProposition(voeuId) {
+  const v = state.voeux.find(x => x.id === voeuId);
+  if (!v) return;
+  if (v.status === 'proposition') {
+    v.status = 'renonce';
+    logEvent(state.currentDay, `Renoncement à la proposition de ${voeuLabel(v)}.`);
+  } else if (v.status === 'attente') {
+    v.status = 'renonce';
+    logEvent(state.currentDay, `Renoncement au vœu en attente : ${voeuLabel(v)}.`);
+  } else if (v.status === 'accepte') {
+    v.status = 'renonce';
+    logEvent(state.currentDay, `Renoncement à l'acceptation : ${voeuLabel(v)}.`);
+  }
+}
+
+// Manual mode: user sets status directly
+function setManualResponse(voeuId, newStatus, rank, total) {
+  const v = state.voeux.find(x => x.id === voeuId);
+  if (!v) return;
+  if (newStatus === 'proposition') {
+    // If proposition exists already, don't reset deadline
+    v.status = 'proposition';
+    if (!v.proposedDay) v.proposedDay = state.currentDay;
+    v.deadlineDay = state.currentDay + getDelay(state.currentDay);
+    v.rank = null; v.total = null;
+    logEvent(state.currentDay, `[Manuel] Proposition pour ${voeuLabel(v)}.`, true);
+  } else if (newStatus === 'attente') {
+    v.status = 'attente';
+    v.rank = rank || 100;
+    v.total = total || 500;
+    v.deadlineDay = null;
+    logEvent(state.currentDay, `[Manuel] ${voeuLabel(v)} en attente — rang ${v.rank}/${v.total}.`);
+  } else if (newStatus === 'refus') {
+    v.status = 'refus';
+    v.deadlineDay = null;
+    logEvent(state.currentDay, `[Manuel] Refus de ${voeuLabel(v)}.`);
+  } else if (newStatus === 'none') {
+    v.status = 'none';
+    v.deadlineDay = null; v.rank = null; v.total = null; v.proposedDay = null;
+  }
+}
+
+// Check if game should auto-end (no propositions, no attente, accepted definitively, etc.)
+function checkAutoEnd() {
+  const props = state.voeux.filter(v => v.status === 'proposition');
+  const attentes = state.voeux.filter(v => v.status === 'attente');
+  const acc = state.voeux.find(v => v.status === 'accepte');
+  // If only outcomes are accepte and no remaining attente/proposition, end
+  if (acc && props.length === 0 && attentes.length === 0) {
+    endPhase();
+    return;
+  }
+  // If no acc and no props and no attentes: failed
+  if (!acc && props.length === 0 && attentes.length === 0) {
+    endPhase();
+    return;
+  }
+}
+
+function endPhase() {
+  state.finished = true;
+  state.screen = 'end';
+}
+
+/* ============================================================
+   RENDER
+============================================================ */
+
+function el(tag, attrs={}, children=[]) {
+  const e = document.createElement(tag);
+  Object.entries(attrs).forEach(([k, v]) => {
+    if (k === 'class') e.className = v;
+    else if (k === 'html') e.innerHTML = v;
+    else if (k.startsWith('on') && typeof v === 'function') e.addEventListener(k.slice(2).toLowerCase(), v);
+    else if (k === 'style' && typeof v === 'object') Object.assign(e.style, v);
+    else e.setAttribute(k, v);
+  });
+  if (typeof children === 'string') e.textContent = children;
+  else children.forEach(c => { if (c) e.appendChild(c); });
+  return e;
+}
+
+function render() {
+  // Clean up any existing modal first
+  document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+
+  // Common header
+  app.appendChild(renderHeader());
+
+  if (state.screen === 'setup') {
+    app.appendChild(renderSetupScreen());
+  } else if (state.screen === 'simulation') {
+    app.appendChild(renderSimulationScreen());
+  } else if (state.screen === 'end') {
+    app.appendChild(renderEndScreen());
+  }
+
+  // Modal
+  if (state.activeModal) {
+    document.body.appendChild(renderModal());
+  }
+}
+
+function renderHeader() {
+  const dnum = state.screen === 'setup' ? '— PARAMÈTRES —' : `JOUR J+${state.currentDay}`;
+  return el('header', { class: 'dossier-header' }, [
+    el('div', { class: 'dossier-meta' }, [
+      el('span', {}, [document.createTextNode('Dossier ')]),
+      el('strong', {}, '№ 2026-CPGE-ING'),
+      el('span', { html: ' · candidat·e — phase principale' }),
+    ]),
+    el('div', { class: 'dossier-tagline' }, dnum),
+  ]);
+}
+
+/* ---------------- SETUP SCREEN ---------------- */
+function renderSetupScreen() {
+  const root = el('section', { class: 'setup-screen' });
+
+  // Hero
+  root.appendChild(el('div', { class: 'hero' }, [
+    el('h1', { html: 'Phase d\'admission <em>2026</em>.<br>Simulez avant l\'épreuve.' }),
+    el('p', { class: 'lede' }, '60 vœux et sous-vœux configurés à partir de votre liste. Compression temporelle, délais réels, point d\'étape obligatoire, répondeur automatique optionnel.'),
+  ]));
+
+  // Mode
+  root.appendChild(el('div', { class: 'config-block' }, [
+    el('div', { class: 'section-num' }, '01 — Mode de simulation'),
+    el('h2', { class: 'section-title', html: 'Comment générer les <em style="font-style:italic;font-family:Fraunces,serif">réponses des écoles</em>.' }),
+    el('div', { class: 'mode-grid' }, [
+      el('button', {
+        class: 'mode-card' + (state.mode === 'aleatoire' ? ' active' : ''),
+        onclick: () => { state.mode = 'aleatoire'; render(); },
+      }, [
+        el('span', { class: 'mode-mark' }, 'A — TIRAGE'),
+        el('h3', {}, 'Aléatoire'),
+        el('p', { class: 'mode-desc' }, "Les réponses tombent au fil des jours selon un curseur de sévérité. Listes d'attente qui montent, propositions qui arrivent en cascade."),
+      ]),
+      el('button', {
+        class: 'mode-card' + (state.mode === 'manuel' ? ' active' : ''),
+        onclick: () => { state.mode = 'manuel'; render(); },
+      }, [
+        el('span', { class: 'mode-mark' }, 'B — MAÎTRISE'),
+        el('h3', {}, 'Manuel'),
+        el('p', { class: 'mode-desc' }, "Vous décidez vous-même de la réponse de chaque école et faites évoluer les rangs jour après jour. Idéal pour rejouer un scénario précis."),
+      ]),
+    ]),
+  ]));
+
+  // Severity (only if aléatoire)
+  if (state.mode === 'aleatoire') {
+    const sev = state.severity;
+    root.appendChild(el('div', { class: 'config-block' }, [
+      el('div', { class: 'section-num' }, '02 — Sévérité du tirage'),
+      el('h2', { class: 'section-title', html: 'Quel <em>contexte</em> voulez-vous simuler ?' }),
+      el('div', { class: 'severity-block' }, [
+        el('div', { class: 'severity-label' }, [
+          el('span', { class: 'lbl-text' }, 'Niveau'),
+          el('span', { class: 'lbl-value' }, SEVERITY_LABELS[sev]),
+        ]),
+        (() => {
+          const inp = el('input', { class: 'severity-slider', type: 'range', min: '0', max: '4', step: '1' });
+          inp.value = String(sev);
+          inp.addEventListener('input', e => { state.severity = parseInt(e.target.value); render(); });
+          return inp;
+        })(),
+        el('div', { class: 'severity-ticks' }, SEVERITY_LABELS.map(l => el('span', {}, l))),
+        el('div', { class: 'severity-desc' }, SEVERITY_DESC[sev]),
+      ]),
+    ]));
+  }
+
+  // Auto-responder
+  const ranBlockNum = state.mode === 'aleatoire' ? '03' : '02';
+  root.appendChild(el('div', { class: 'config-block' }, [
+    el('div', { class: 'section-num' }, `${ranBlockNum} — Répondeur automatique`),
+    el('h2', { class: 'section-title', html: 'Activer le <em>répondeur</em> ?' }),
+    el('div', { class: 'toggle-row' }, [
+      el('div', { class: 'toggle-label' }, [
+        el('strong', {}, 'Activer le répondeur automatique'),
+        el('span', {}, "Si activé, dès qu'une proposition arrive et qu'elle est mieux classée que celle déjà acceptée, l'accepation se fait automatiquement et les vœux moins bien classés sont renoncés."),
+      ]),
+      (() => {
+        const t = el('div', { class: 'toggle' + (state.autoresponderEnabled ? ' on' : '') });
+        t.addEventListener('click', () => { state.autoresponderEnabled = !state.autoresponderEnabled; render(); });
+        return t;
+      })(),
+    ]),
+    state.autoresponderEnabled ? el('button', {
+      class: 'btn-config-rank',
+      onclick: () => openModal({ type: 'rank' }),
+    }, '⇅  Configurer le classement de mes vœux') : null,
+  ]));
+
+  // Launch button
+  root.appendChild(el('button', {
+    class: 'btn-primary',
+    onclick: () => startSimulation(),
+  }, [
+    el('span', {}, 'Démarrer la simulation'),
+    el('span', { class: 'arr' }, '→'),
+  ]));
+
+  return root;
+}
+
+function startSimulation() {
+  state.screen = 'simulation';
+  state.currentDay = 0;
+  if (state.mode === 'aleatoire') {
+    initializeDay0();
+    if (state.autoresponderEnabled) runAutoresponder();
+  }
+  render();
+}
+
+/* ---------------- SIMULATION SCREEN ---------------- */
+function renderSimulationScreen() {
+  const root = el('section', { class: 'simulation-screen' });
+
+  // Topbar
+  const date = dateForDay(state.currentDay);
+  root.appendChild(el('div', { class: 'sim-topbar' }, [
+    el('div', { class: 'sim-date-block' }, [
+      el('div', { class: 'date-tag' }, `JOUR J+${state.currentDay} · DÉLAI DE RÉPONSE : ${getDelay(state.currentDay)} JOURS`),
+      el('div', { class: 'date-main', html: `<em>${DAYS_FR[date.getDay()]}</em> ${date.getDate()} ${MONTHS_FR[date.getMonth()]}` }),
+      el('div', { class: 'date-sub' }, state.currentDay === 0 ? "Ouverture de la phase d'admission." : (state.currentDay === POINT_ETAPE_DAY ? "Point d'étape obligatoire — aujourd'hui." : (state.currentDay >= PHASE_END_DAY ? "Fin de phase principale." : "Les réponses tombent."))),
+    ]),
+    el('div', { class: 'sim-actions' }, [
+      el('button', { class: 'btn-secondary', onclick: () => { if (confirm('Réinitialiser la simulation et revenir aux paramètres ?')) { state = freshState(); render(); } } }, 'Réinitialiser'),
+    ]),
+  ]));
+
+  // Stats
+  const stats = computeStats();
+  root.appendChild(el('div', { class: 'stats-strip' }, [
+    el('div', { class: 'stat acc' }, [
+      el('div', { class: 'stat-label' }, 'Acceptée'),
+      el('div', { class: 'stat-value' }, stats.acc ? '1' : '—'),
+    ]),
+    el('div', { class: 'stat ok' }, [
+      el('div', { class: 'stat-label' }, 'Propositions'),
+      el('div', { class: 'stat-value' }, String(stats.proposition)),
+    ]),
+    el('div', { class: 'stat attente' }, [
+      el('div', { class: 'stat-label' }, "En attente"),
+      el('div', { class: 'stat-value' }, String(stats.attente)),
+    ]),
+    el('div', { class: 'stat refus' }, [
+      el('div', { class: 'stat-label' }, 'Refus'),
+      el('div', { class: 'stat-value' }, String(stats.refus)),
+    ]),
+    el('div', { class: 'stat' }, [
+      el('div', { class: 'stat-label' }, 'Sans réponse'),
+      el('div', { class: 'stat-value' }, String(stats.none)),
+    ]),
+  ]));
+
+  // Action panel: propositions à traiter
+  const propositions = state.voeux.filter(v => v.status === 'proposition');
+  root.appendChild(renderActionsPanel(propositions));
+
+  // Filters
+  root.appendChild(renderFilters(stats));
+
+  // Vœux list
+  root.appendChild(renderVoeuxList());
+
+  // Day controls
+  root.appendChild(renderDayControls(propositions));
+
+  // Event log
+  root.appendChild(renderEventLog());
+
+  return root;
+}
+
+function computeStats() {
+  return {
+    acc: state.voeux.filter(v => v.status === 'accepte').length > 0,
+    proposition: state.voeux.filter(v => v.status === 'proposition').length,
+    attente: state.voeux.filter(v => v.status === 'attente').length,
+    refus: state.voeux.filter(v => v.status === 'refus').length,
+    none: state.voeux.filter(v => v.status === 'none').length,
+    renonce: state.voeux.filter(v => v.status === 'renonce').length,
+    expire: state.voeux.filter(v => v.status === 'expire').length,
+  };
+}
+
+function renderActionsPanel(propositions) {
+  const panel = el('div', { class: 'actions-panel' }, [
+    el('div', { class: 'actions-panel-header' }, [
+      el('span', { class: 'spark' }, '◆'),
+      el('span', { class: 'ttl' }, 'Propositions à traiter'),
+      el('span', { class: 'count' }, propositions.length === 0 ? '—' : `${propositions.length} en attente de votre décision`),
+    ]),
+  ]);
+  if (propositions.length === 0) {
+    panel.appendChild(el('div', { class: 'empty-actions' }, "Aucune proposition à traiter pour le moment."));
+  } else {
+    propositions.forEach(p => {
+      const daysLeft = p.deadlineDay - state.currentDay;
+      const urgent = daysLeft <= 1;
+      panel.appendChild(el('div', { class: 'action-item' }, [
+        el('div', {}, [
+          el('div', { class: 'name', html: p.name + ' <em>· ' + p.formation + (p.internat==='avec' ? ' · avec internat' : p.internat==='sans' ? ' · sans internat' : '') + '</em>' }),
+          el('div', { class: 'meta' }, p.ville || '—'),
+        ]),
+        el('div', { class: 'deadline' + (urgent ? ' urgent' : '') }, [
+          el('div', {}, 'Réponse avant'),
+          el('strong', {}, `J+${p.deadlineDay} (${daysLeft}j)`),
+        ]),
+        el('div', { class: 'action-buttons' }, [
+          el('button', { class: 'btn-accept', onclick: () => confirmAccept(p.id) }, 'Accepter'),
+          el('button', { class: 'btn-refuse', onclick: () => { refuseProposition(p.id); render(); } }, 'Refuser'),
+        ]),
+      ]));
+    });
+  }
+  return panel;
+}
+
+function confirmAccept(voeuId) {
+  const v = state.voeux.find(x => x.id === voeuId);
+  if (!v) return;
+  // Show confirmation modal
+  openModal({ type: 'confirm_accept', payload: { voeuId } });
+}
+
+function renderFilters(stats) {
+  const filters = [
+    { key: 'all', label: 'Tous', count: state.voeux.length },
+    { key: 'proposition', label: 'Propositions', count: stats.proposition },
+    { key: 'attente', label: "En attente", count: stats.attente },
+    { key: 'refus', label: 'Refus', count: stats.refus },
+    { key: 'accepte', label: 'Acceptés', count: state.voeux.filter(v => v.status==='accepte').length },
+    { key: 'none', label: 'Sans réponse', count: stats.none },
+    { key: 'renonce', label: 'Renoncés/Expirés', count: stats.renonce + stats.expire },
+  ];
+  return el('div', { class: 'filters-bar' }, filters.map(f =>
+    el('button', {
+      class: 'filter-tab' + (state.filterStatus === f.key ? ' active' : ''),
+      onclick: () => { state.filterStatus = f.key; render(); },
+    }, [
+      el('span', {}, f.label),
+      el('span', { class: 'ct' }, String(f.count)),
+    ])
+  ));
+}
+
+function renderVoeuxList() {
+  const filtered = state.voeux.filter(v => {
+    if (state.filterStatus === 'all') return true;
+    if (state.filterStatus === 'renonce') return v.status === 'renonce' || v.status === 'expire';
+    return v.status === state.filterStatus;
+  });
+  const list = el('div', { class: 'voeux-list' });
+  if (filtered.length === 0) {
+    list.appendChild(el('div', { style: { padding: '24px', fontFamily: 'Fraunces, serif', fontStyle: 'italic', color: 'var(--ink-mute)', textAlign: 'center' } }, 'Aucun vœu dans cette catégorie.'));
+    return list;
+  }
+  filtered.forEach((v, i) => {
+    list.appendChild(renderVoeuRow(v, i));
+  });
+  return list;
+}
+
+function renderVoeuRow(v, idx) {
+  const idGlobal = state.voeux.findIndex(x => x.id === v.id) + 1;
+  const cls = 'voeu-row is-' + v.status;
+  const internatLabel =
+    v.internat === 'avec' ? '<span class="int-tag">+ INT.</span>' :
+    v.internat === 'sans' ? '<span class="int-tag">SANS INT.</span>' : '—';
+
+  let statusLabel, statusCls;
+  if (v.status === 'none') { statusLabel = '—'; statusCls = 'status-none'; }
+  else if (v.status === 'proposition') { statusLabel = `Oui · J+${v.deadlineDay}`; statusCls = 'status-proposition'; }
+  else if (v.status === 'attente') { statusLabel = `Attente · ${v.rank}/${v.total}`; statusCls = 'status-attente'; }
+  else if (v.status === 'refus') { statusLabel = 'Refusé'; statusCls = 'status-refus'; }
+  else if (v.status === 'accepte') { statusLabel = '✓ Acceptée'; statusCls = 'status-accepte'; }
+  else if (v.status === 'renonce') { statusLabel = 'Renoncé'; statusCls = 'status-renonce'; }
+  else if (v.status === 'expire') { statusLabel = 'Expiré'; statusCls = 'status-expire'; }
+
+  // Actions
+  const actions = el('div', { class: 'voeu-actions' });
+  if (v.status === 'proposition') {
+    actions.appendChild(el('button', { class: 'btn-mini accept', onclick: () => confirmAccept(v.id) }, 'Accept.'));
+    actions.appendChild(el('button', { class: 'btn-mini refuse', onclick: () => { refuseProposition(v.id); render(); } }, 'Refuser'));
+  } else if (v.status === 'attente') {
+    actions.appendChild(el('button', { class: 'btn-mini refuse', onclick: () => { if (confirm(`Renoncer à la liste d'attente de ${v.name} ?`)) { refuseProposition(v.id); render(); } } }, 'Renoncer'));
+  } else if (v.status === 'accepte') {
+    actions.appendChild(el('button', { class: 'btn-mini refuse', onclick: () => { if (confirm("Renoncer à cette acceptation ? Vous repartirez sans proposition acceptée.")) { refuseProposition(v.id); render(); } } }, 'Renoncer'));
+  }
+  // In manual mode, allow setting status directly
+  if (state.mode === 'manuel' && (v.status === 'none' || v.status === 'attente' || v.status === 'refus')) {
+    actions.appendChild(el('button', { class: 'btn-mini', onclick: () => openModal({ type: 'manual', payload: { voeuId: v.id } }) }, 'Modifier'));
+  }
+
+  return el('div', { class: cls }, [
+    el('div', { class: 'voeu-num' }, String(idGlobal).padStart(2, '0')),
+    el('div', { class: 'voeu-name', html: `${v.name}${v.ville ? ` <span class="voeu-ville">${v.ville}</span>` : ''}` }),
+    el('div', { class: 'voeu-formation' }, v.formation),
+    el('div', { class: 'voeu-internat', html: internatLabel }),
+    el('div', { class: 'voeu-status' }, [el('span', { class: 'status-pill ' + statusCls }, statusLabel)]),
+    actions,
+  ]);
+}
+
+function renderDayControls(propositions) {
+  const day = state.currentDay;
+  const blockReason = getBlockReason(propositions);
+  const canAdvance = !blockReason;
+  return el('div', { class: 'day-controls' }, [
+    el('div', { class: 'day-info', html: blockReason
+      ? `<strong>Avant d'avancer :</strong> ${blockReason}`
+      : `Prochain jour : <strong>J+${day+1}</strong>${day+1 === POINT_ETAPE_DAY ? ' — point d\'étape obligatoire' : ''}.`
+    }),
+    el('div', {}, [
+      el('button', {
+        class: 'btn-primary' + (canAdvance ? '' : ''),
+        style: canAdvance ? {} : { opacity: '0.4', cursor: 'not-allowed' },
+        onclick: () => { if (canAdvance) { advanceDay(); render(); } else { alert(blockReason); } },
+      }, [
+        el('span', {}, 'Jour suivant'),
+        el('span', { class: 'arr' }, '→'),
+      ]),
+    ]),
+  ]);
+}
+
+function getBlockReason(propositions) {
+  // Cannot advance if there are propositions to handle (real Parcoursup forces a choice eventually)
+  // We allow advance if propositions still have time on their deadline
+  const expiringToday = propositions.filter(p => p.deadlineDay === state.currentDay);
+  if (expiringToday.length > 0) {
+    return `Vous avez ${expiringToday.length} proposition(s) dont le délai expire aujourd'hui. Acceptez ou renoncez avant d'avancer.`;
+  }
+  return null;
+}
+
+function renderEventLog() {
+  const logBlock = el('div', { class: 'event-log' });
+  logBlock.appendChild(el('h4', {}, "↪ Journal des événements"));
+  if (state.log.length === 0) {
+    logBlock.appendChild(el('div', { class: 'event-item' }, 'Aucun événement pour le moment.'));
+  } else {
+    state.log.slice(0, 18).forEach(ev => {
+      logBlock.appendChild(el('div', { class: 'event-item' + (ev.major ? ' major' : '') }, [
+        el('span', { class: 'ev-day' }, `J+${ev.day}`),
+        el('span', {}, ev.text),
+      ]));
+    });
+  }
+  return logBlock;
+}
+
+/* ---------------- END SCREEN ---------------- */
+function renderEndScreen() {
+  const root = el('section', { class: 'end-screen' });
+  const accepted = state.voeux.find(v => v.status === 'accepte');
+  const success = !!accepted;
+
+  root.appendChild(el('div', { class: 'end-result ' + (success ? 'success' : 'fail') }, [
+    el('div', { class: 'result-tag' }, success ? '✓ ADMISSION' : '✕ AUCUNE ADMISSION'),
+    el('h2', { html: success
+      ? `Vous avez accepté <em>${accepted.name}</em>.`
+      : `Aucune <em>admission</em> à l'issue de la phase principale.`
+    }),
+    el('p', { class: 'result-desc' }, success
+      ? `${accepted.formation}${accepted.internat==='avec' ? ' · avec internat' : accepted.internat==='sans' ? ' · sans internat' : ''}${accepted.ville ? ' · ' + accepted.ville : ''}.`
+      : "La phase complémentaire (à partir de mi-juin) permettrait de chercher d'autres formations avec places vacantes."
+    ),
+  ]));
+
+  // Summary stats
+  const stats = computeStats();
+  root.appendChild(el('div', { class: 'stats-strip', style: { marginBottom: '32px' } }, [
+    el('div', { class: 'stat ok' }, [el('div', { class: 'stat-label' }, 'Propositions reçues'), el('div', { class: 'stat-value' }, String(state.voeux.filter(v => ['proposition','accepte','renonce','expire'].includes(v.status) && v.proposedDay !== null).length))]),
+    el('div', { class: 'stat attente' }, [el('div', { class: 'stat-label' }, 'En attente final'), el('div', { class: 'stat-value' }, String(stats.attente))]),
+    el('div', { class: 'stat refus' }, [el('div', { class: 'stat-label' }, 'Refus'), el('div', { class: 'stat-value' }, String(stats.refus))]),
+    el('div', { class: 'stat' }, [el('div', { class: 'stat-label' }, 'Renoncements'), el('div', { class: 'stat-value' }, String(stats.renonce + stats.expire))]),
+    el('div', { class: 'stat' }, [el('div', { class: 'stat-label' }, 'Jour atteint'), el('div', { class: 'stat-value' }, `J+${state.currentDay}`)]),
+  ]));
+
+  // Detailed list of propositions ever received
+  const everProposed = state.voeux.filter(v => v.proposedDay !== null || v.status === 'accepte');
+  if (everProposed.length > 0) {
+    root.appendChild(el('h3', { class: 'section-title' }, 'Propositions reçues durant la phase'));
+    const list = el('div', { class: 'voeux-list' });
+    everProposed.sort((a,b) => (a.proposedDay||0) - (b.proposedDay||0)).forEach(v => list.appendChild(renderVoeuRow(v, 0)));
+    root.appendChild(list);
+  }
+
+  root.appendChild(el('div', { style: { marginTop: '32px', display: 'flex', gap: '12px', flexWrap: 'wrap' } }, [
+    el('button', { class: 'btn-primary', onclick: () => { const oldMode = state.mode; const oldSev = state.severity; const oldAuto = state.autoresponderEnabled; const oldRank = state.autoresponderRanking; state = freshState(); state.mode = oldMode; state.severity = oldSev; state.autoresponderEnabled = oldAuto; state.autoresponderRanking = oldRank; startSimulation(); } }, [
+      el('span', {}, 'Rejouer une simulation'),
+      el('span', { class: 'arr' }, '↻'),
+    ]),
+    el('button', { class: 'btn-secondary', onclick: () => { state = freshState(); render(); } }, 'Modifier les paramètres'),
+  ]));
+
+  return root;
+}
+
+/* ---------------- MODALS ---------------- */
+function openModal(modal) { state.activeModal = modal; render(); }
+function closeModal() { state.activeModal = null; render(); }
+
+function renderModal() {
+  const m = state.activeModal;
+  if (!m) return null;
+  let content;
+  if (m.type === 'rank') content = renderRankModal();
+  else if (m.type === 'confirm_accept') content = renderConfirmAcceptModal(m.payload);
+  else if (m.type === 'manual') content = renderManualModal(m.payload);
+  else if (m.type === 'point_etape') content = renderPointEtapeModal();
+  else content = el('div', {}, 'Modal inconnue');
+
+  // Remove existing modal if any
+  document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+
+  const backdrop = el('div', { class: 'modal-backdrop', onclick: (e) => { if (e.target === backdrop) closeModal(); } }, [content]);
+  return backdrop;
+}
+
+function renderRankModal() {
+  const ids = state.autoresponderRanking;
+  const list = el('ul', { class: 'ranking-list' });
+  ids.forEach((id, idx) => {
+    const v = state.voeux.find(x => x.id === id);
+    if (!v) return;
+    const labelExtra = v.internat === 'avec' ? ' (+ int.)' : v.internat === 'sans' ? ' (sans int.)' : '';
+    list.appendChild(el('li', { class: 'ranking-item' }, [
+      el('span', { class: 'rk-num' }, String(idx + 1).padStart(2, '0')),
+      el('div', { class: 'rk-name', html: `${v.name}${labelExtra} <span>${v.formation}</span>` }),
+      el('div', { class: 'rk-arrows' }, [
+        (() => { const b = el('button', { onclick: () => { if (idx>0) { [ids[idx-1], ids[idx]] = [ids[idx], ids[idx-1]]; render(); } } }, '↑'); if (idx === 0) b.disabled = true; return b; })(),
+        (() => { const b = el('button', { onclick: () => { if (idx<ids.length-1) { [ids[idx+1], ids[idx]] = [ids[idx], ids[idx+1]]; render(); } } }, '↓'); if (idx === ids.length-1) b.disabled = true; return b; })(),
+      ]),
+    ]));
+  });
+  return el('div', { class: 'modal modal-large' }, [
+    el('button', { class: 'modal-close', onclick: closeModal }, '×'),
+    el('div', { class: 'modal-header' }, [
+      el('div', { class: 'modal-tag' }, 'RÉPONDEUR · CLASSEMENT'),
+      el('h2', { html: 'Classement de mes <em>vœux</em>' }),
+    ]),
+    el('div', { class: 'modal-body' }, [
+      el('p', { class: 'serif-italic' }, "Le répondeur acceptera automatiquement la meilleure proposition reçue selon ce classement, et renoncera à tout vœu (proposition ou attente) moins bien classé."),
+      list,
+    ]),
+    el('div', { class: 'modal-footer' }, [
+      el('button', { class: 'btn-primary', onclick: closeModal, style: { marginTop: '0', padding: '12px 24px' } }, 'Valider'),
+    ]),
+  ]);
+}
+
+function renderConfirmAcceptModal(payload) {
+  const v = state.voeux.find(x => x.id === payload.voeuId);
+  const otherProps = state.voeux.filter(x => x.id !== v.id && x.status === 'proposition');
+  const currentlyAccepted = state.voeux.find(x => x.status === 'accepte' && x.id !== v.id);
+  const attentes = state.voeux.filter(x => x.status === 'attente');
+
+  const consequences = [];
+  if (currentlyAccepted) consequences.push(`Vous renoncerez à votre acceptation actuelle (${currentlyAccepted.name}).`);
+  if (otherProps.length > 0) consequences.push(`Vous devrez renoncer aux ${otherProps.length} autre(s) proposition(s) en cours (vous pouvez les refuser maintenant ou les laisser expirer).`);
+  if (attentes.length > 0) consequences.push(`Vos ${attentes.length} vœu(x) en liste d'attente restent actifs (sauf si vous les renoncez manuellement, ou via le répondeur automatique).`);
+
+  return el('div', { class: 'modal' }, [
+    el('button', { class: 'modal-close', onclick: closeModal }, '×'),
+    el('div', { class: 'modal-header' }, [
+      el('div', { class: 'modal-tag', style: { color: 'var(--green)' } }, '✓ ACCEPTATION'),
+      el('h2', { html: `Accepter <em>${v.name}</em> ?` }),
+    ]),
+    el('div', { class: 'modal-body' }, [
+      el('p', { class: 'serif-italic' }, `${v.formation}${v.internat==='avec' ? ' · avec internat' : v.internat==='sans' ? ' · sans internat' : ''}${v.ville ? ' · ' + v.ville : ''}.`),
+      consequences.length > 0
+        ? el('ul', { style: { paddingLeft: '20px', marginTop: '12px' } }, consequences.map(c => el('li', { style: { marginBottom: '8px' } }, c)))
+        : el('p', {}, "Aucune proposition concurrente : cette acceptation est pure et simple."),
+    ]),
+    el('div', { class: 'modal-footer' }, [
+      el('button', { class: 'btn-secondary', onclick: closeModal }, 'Annuler'),
+      el('button', { class: 'btn-accept', onclick: () => { acceptProposition(v.id); closeModal(); } }, 'Confirmer l\'acceptation'),
+    ]),
+  ]);
+}
+
+function renderManualModal(payload) {
+  const v = state.voeux.find(x => x.id === payload.voeuId);
+  const sel = state._manualPick || v.status;
+  const rank = state._manualRank || (v.rank || 100);
+  const total = state._manualTotal || (v.total || 500);
+
+  const opts = [
+    { key: 'proposition', tag: 'OUI', label: 'Proposition' },
+    { key: 'attente', tag: 'ATT', label: "Liste d'attente" },
+    { key: 'refus', tag: 'NON', label: 'Refus' },
+    { key: 'none', tag: '—', label: 'Sans réponse' },
+  ];
+
+  const optsEls = opts.map(o => el('div', {
+    class: 'manual-option' + (sel === o.key ? ' selected' : ''),
+    onclick: () => { state._manualPick = o.key; render(); openModal(payload && {type:'manual', payload}); render(); },
+  }, [
+    el('div', { class: 'opt-tag' }, o.tag),
+    el('div', { class: 'opt-name' }, o.label),
+  ]));
+
+  // Note: re-rendering modal causes losing manual selection. We use state._manualPick to persist within modal session.
+  const body = el('div', { class: 'modal-body' }, [
+    el('p', { class: 'serif-italic' }, `Définissez la réponse de cette école.`),
+    el('div', { class: 'manual-options' }, optsEls),
+  ]);
+
+  if (sel === 'attente') {
+    const rankRow = el('div', { class: 'rank-input-row' }, []);
+    rankRow.appendChild(el('label', {}, 'Rang :'));
+    const rinp = el('input', { type: 'number', value: String(rank), min: '1' });
+    rinp.addEventListener('input', e => { state._manualRank = parseInt(e.target.value) || 1; });
+    rankRow.appendChild(rinp);
+    rankRow.appendChild(el('label', {}, ' / Total :'));
+    const tinp = el('input', { type: 'number', value: String(total), min: '1' });
+    tinp.addEventListener('input', e => { state._manualTotal = parseInt(e.target.value) || 1; });
+    rankRow.appendChild(tinp);
+    body.appendChild(rankRow);
+  }
+
+  return el('div', { class: 'modal' }, [
+    el('button', { class: 'modal-close', onclick: () => { delete state._manualPick; delete state._manualRank; delete state._manualTotal; closeModal(); } }, '×'),
+    el('div', { class: 'modal-header' }, [
+      el('div', { class: 'modal-tag' }, 'MANUEL · RÉPONSE D\'ÉCOLE'),
+      el('h2', { html: `${v.name}${v.internat==='avec' ? ' <em>(+ int.)</em>' : v.internat==='sans' ? ' <em>(sans int.)</em>' : ''}` }),
+    ]),
+    body,
+    el('div', { class: 'modal-footer' }, [
+      el('button', { class: 'btn-secondary', onclick: () => { delete state._manualPick; delete state._manualRank; delete state._manualTotal; closeModal(); } }, 'Annuler'),
+      el('button', { class: 'btn-accept', onclick: () => {
+        const pick = state._manualPick || sel;
+        const r = state._manualRank || rank;
+        const t = state._manualTotal || total;
+        delete state._manualPick; delete state._manualRank; delete state._manualTotal;
+        setManualResponse(v.id, pick, r, t);
+        closeModal();
+      } }, 'Appliquer'),
+    ]),
+  ]);
+}
+
+function renderPointEtapeModal() {
+  const accepted = state.voeux.find(v => v.status === 'accepte');
+  const attentes = state.voeux.filter(v => v.status === 'attente');
+  const propositions = state.voeux.filter(v => v.status === 'proposition');
+  state.pointEtapeDone = true;
+  return el('div', { class: 'modal modal-large' }, [
+    el('div', { class: 'modal-header' }, [
+      el('div', { class: 'modal-tag', style: { color: 'var(--accent)' } }, '⚠ POINT D\'ÉTAPE OBLIGATOIRE'),
+      el('h2', { html: 'Confirmez vos <em>vœux en attente</em>.' }),
+    ]),
+    el('div', { class: 'modal-body' }, [
+      el('p', { class: 'serif-italic' }, `Aujourd'hui (J+${POINT_ETAPE_DAY}, ≈ 23 juin), Parcoursup vous demande de confirmer les vœux en attente que vous souhaitez maintenir. Les autres seront automatiquement renoncés.`),
+      el('p', {}, accepted ? `Vous avez actuellement accepté : ${accepted.name}.` : `Vous n'avez pour l'instant aucune acceptation définitive.`),
+      el('p', {}, `${attentes.length} vœu(x) en attente · ${propositions.length} proposition(s) actives.`),
+      el('p', { class: 'serif-italic', style: { color: 'var(--ink-mute)' } }, "Pour la simulation, cliquez sur 'Tout maintenir' (rapide) ou allez dans la liste pour renoncer manuellement à certains vœux avant de fermer."),
+    ]),
+    el('div', { class: 'modal-footer' }, [
+      el('button', { class: 'btn-secondary', onclick: () => {
+        // Renounce all attente
+        state.voeux.forEach(v => {
+          if (v.status === 'attente') { v.status = 'renonce'; logEvent(state.currentDay, `Point d'étape : renoncement à ${voeuLabel(v)}.`); }
+        });
+        closeModal();
+      } }, 'Tout renoncer en attente'),
+      el('button', { class: 'btn-accept', onclick: () => { logEvent(state.currentDay, `Point d'étape validé : tous les vœux en attente maintenus.`, true); closeModal(); } }, 'Tout maintenir'),
+    ]),
+  ]);
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+
+state = freshState();
+render();
+</script>
+</body>
+</html>
